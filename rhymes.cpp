@@ -16,6 +16,7 @@ using namespace std;
 string findLastWord(string line);
 void cleanUp(string &word);
 bool compareWords(string word1, string word2);
+bool isValidLine(string line);
 
 int main(){
     //get filename from user
@@ -30,15 +31,13 @@ int main(){
         exit(1);
     }
 
-    //first pass: count non-blank lines
+    //first pass: count valid lines
     int lineCount = 0;
     string line;
     while(getline(inFile, line)){
-        bool blank = true;
-        for(int i = 0; i < (int)line.size(); i++){
-            if(!isspace(line[i])){ blank = false; break; }
+        if(isValidLine(line)){
+            lineCount++;
         }
-        if(!blank) lineCount++;
     }
 
     //handle empty poem
@@ -49,7 +48,7 @@ int main(){
         return 0;
     }
 
-    //rewind and store last word of each non-blank line
+    //rewind and store last word of each valid line
     inFile.clear();
     inFile.seekg(0);
 
@@ -57,11 +56,7 @@ int main(){
     int idx = 0;
 
     while(getline(inFile, line)){
-        bool blank = true;
-        for(int i = 0; i < (int)line.size(); i++){
-            if(!isspace(line[i])){ blank = false; break; }
-        }
-        if(!blank){
+        if(isValidLine(line)){
             lastWords[idx] = findLastWord(line);
             idx++;
         }
@@ -97,17 +92,48 @@ int main(){
     return 0;
 }
 
-//Pre:  line is a non-blank string with at least 2 words
+//Pre:  line is any string
+//Post: Returns true if line has at least 2 tokens containing alpha characters
+bool isValidLine(string line){
+    int alphaWordCount = 0;
+    bool inWord = false;
+    bool curWordHasAlpha = false;
+    for(int i = 0; i < (int)line.size(); i++){
+        if(!isspace(line[i])){
+            if(isalpha(line[i])){
+                curWordHasAlpha = true;
+            }
+            inWord = true;
+        }else{
+            if(inWord){
+                if(curWordHasAlpha){
+                    alphaWordCount++;
+                }
+                inWord = false;
+                curWordHasAlpha = false;
+            }
+        }
+    }
+    //catch last word
+    if(inWord && curWordHasAlpha){
+        alphaWordCount++;
+    }
+    return alphaWordCount >= 2;
+}
+
+//Pre:  line is a valid line with at least 2 words
 //Post: Returns the last word of the line, cleaned of non-alpha characters
 //      and converted to lower-case
 string findLastWord(string line){
-    //scan from end, skip trailing whitespace
     int end = (int)line.size() - 1;
-    while(end >= 0 && isspace(line[end])) end--;
+    while(end >= 0 && isspace(line[end])){
+        end--;
+    }
 
-    //find start of last word
     int start = end;
-    while(start > 0 && !isspace(line[start - 1])) start--;
+    while(start > 0 && !isspace(line[start - 1])){
+        start--;
+    }
 
     string lastWord = line.substr(start, end - start + 1);
     cleanUp(lastWord);
