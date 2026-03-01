@@ -1,5 +1,5 @@
 //rhymes.cpp
-//Author: [Your Name]
+//Author: Shane Nguyen
 //Date: February 2026
 //Description: Reads a poem from a file, extracts the last word of each line,
 //             and checks adjacent lines for rhymes (matching last 2 letters).
@@ -80,13 +80,11 @@ int main(){
         exit(1);
     }
 
-    //read all non-blank lines and extract last words
-    //first pass: count lines
+    //first pass: count non-blank lines
     int lineCount = 0;
     string line;
     while(getline(inFile, line)){
         if(!line.empty()){
-            //check if line has non-whitespace characters
             bool hasContent = false;
             for(int i = 0; i < (int)line.size(); i++){
                 if(!isspace(line[i])){ hasContent = true; break; }
@@ -95,7 +93,7 @@ int main(){
         }
     }
 
-    //rewind and collect last words
+    //rewind and collect last words into dynamic array
     inFile.clear();
     inFile.seekg(0);
 
@@ -115,7 +113,7 @@ int main(){
     }
     inFile.close();
 
-    //find and print rhyming pairs
+    //find and print rhyming adjacent pairs
     int rhymeCount = 0;
     for(int i = 0; i < lineCount - 1; i++){
         if(compareWords(lastWords[i], lastWords[i + 1])){
@@ -124,7 +122,7 @@ int main(){
         }
     }
 
-    //print results
+    //print summary
     if(rhymeCount == 0){
         cout << "No rhymes found." << endl;
         cout << "There are " << lineCount << " lines in this poem." << endl;
@@ -135,7 +133,8 @@ int main(){
             cout << "There are " << rhymeCount << " pairs of rhyming words." << endl;
         }
         cout << fixed << setprecision(2);
-        cout << "There are " << lineCount << " lines in this poem, so the rhyme-line density is: " << (double)rhymeCount / lineCount << endl;
+        cout << "There are " << lineCount << " lines in this poem, so the rhyme-line density is: "
+             << (double)rhymeCount / lineCount << endl;
     }
 
     delete[] lastWords;
