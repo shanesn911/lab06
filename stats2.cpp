@@ -39,6 +39,12 @@ int main(){
         count++;
     }
 
+    //handle empty file
+    if(count == 0){
+        inFile.close();
+        return 0;
+    }
+
     //allocate a dynamic array of that size
     int* grades = new int[count];
 

@@ -22,7 +22,7 @@ bool compareWords(string word1, string word2);
 //      and converted to lower-case
 string findLastWord(string line){
     //find the last word by scanning from the end
-    int end = line.size() - 1;
+    int end = (int)line.size() - 1;
 
     //skip any trailing whitespace
     while(end >= 0 && isspace(line[end])){
@@ -66,6 +66,15 @@ bool compareWords(string word1, string word2){
            (word1[len1 - 1] == word2[len2 - 1]);
 }
 
+//Pre:  line is any string
+//Post: Returns true if line contains at least one alphabetical character
+bool hasAlpha(string line){
+    for(int i = 0; i < (int)line.size(); i++){
+        if(isalpha(line[i])) return true;
+    }
+    return false;
+}
+
 int main(){
     string filename;
 
@@ -80,17 +89,19 @@ int main(){
         exit(1);
     }
 
-    //first pass: count non-blank lines
+    //first pass: count lines that contain at least one alpha character
     int lineCount = 0;
     string line;
     while(getline(inFile, line)){
-        if(!line.empty()){
-            bool hasContent = false;
-            for(int i = 0; i < (int)line.size(); i++){
-                if(!isspace(line[i])){ hasContent = true; break; }
-            }
-            if(hasContent) lineCount++;
-        }
+        if(hasAlpha(line)) lineCount++;
+    }
+
+    //handle empty poem
+    if(lineCount == 0){
+        cout << "No rhymes found." << endl;
+        cout << "There are 0 lines in this poem." << endl;
+        inFile.close();
+        return 0;
     }
 
     //rewind and collect last words into dynamic array
@@ -101,12 +112,7 @@ int main(){
     int idx = 0;
 
     while(getline(inFile, line) && idx < lineCount){
-        //skip blank lines
-        bool hasContent = false;
-        for(int i = 0; i < (int)line.size(); i++){
-            if(!isspace(line[i])){ hasContent = true; break; }
-        }
-        if(hasContent){
+        if(hasAlpha(line)){
             lastWords[idx] = findLastWord(line);
             idx++;
         }
