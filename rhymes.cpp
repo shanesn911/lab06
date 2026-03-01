@@ -12,10 +12,106 @@
 #include <cctype>
 using namespace std;
 
-//function declarations
+//FUNCTION DECLARATIONS: YOU MUST DEFINE AND USE THESE (do not remove):
+//      You can declare/define other functions if you like as well,
+//      but you must use the 3 functions below.
+//See lab description for more on these functions.
+
 string findLastWord(string line);
 void cleanUp(string &word);
 bool compareWords(string word1, string word2);
+bool hasAlpha(string line);
+void stripCR(string &line);
+
+int main(){
+    //create input stream object and get filename from user
+    string filename;
+    cout << "Enter filename: ";
+    cin >> filename;
+
+    ifstream inFile(filename);
+    if(!inFile.is_open()){
+        cerr << "Cannot open " << filename << endl;
+        exit(1);
+    }
+
+    //first pass: count lines that contain at least one alpha character
+    int lineCount = 0;
+    string line;
+    while(getline(inFile, line)){
+        stripCR(line);
+        if(hasAlpha(line)) lineCount++;
+    }
+
+    //handle empty poem
+    if(lineCount == 0){
+        cout << "No rhymes found." << endl;
+        cout << "There are 0 lines in this poem." << endl;
+        inFile.close();
+        return 0;
+    }
+
+    //rewind and collect last words into dynamic array
+    inFile.clear();
+    inFile.seekg(0);
+
+    string* lastWords = new string[lineCount];
+    int idx = 0;
+
+    while(getline(inFile, line) && idx < lineCount){
+        stripCR(line);
+        if(hasAlpha(line)){
+            lastWords[idx] = findLastWord(line);
+            idx++;
+        }
+    }
+    inFile.close();
+
+    //find and print rhyming adjacent pairs
+    int rhymeCount = 0;
+    for(int i = 0; i < lineCount - 1; i++){
+        if(compareWords(lastWords[i], lastWords[i + 1])){
+            cout << lastWords[i] << " and " << lastWords[i + 1] << endl;
+            rhymeCount++;
+        }
+    }
+
+    //print summary
+    if(rhymeCount == 0){
+        cout << "No rhymes found." << endl;
+        cout << "There are " << lineCount << " lines in this poem." << endl;
+    }else{
+        if(rhymeCount == 1){
+            cout << "There is 1 pair of rhyming words." << endl;
+        }else{
+            cout << "There are " << rhymeCount << " pairs of rhyming words." << endl;
+        }
+        cout << fixed << setprecision(2);
+        cout << "There are " << lineCount << " lines in this poem, so the rhyme-line density is: "
+             << (double)rhymeCount / lineCount << endl;
+    }
+
+    delete[] lastWords;
+
+    return 0;
+}
+
+//Pre:  line is any string
+//Post: Removes trailing carriage return character if present (handles Windows line endings)
+void stripCR(string &line){
+    if(!line.empty() && line[line.size() - 1] == '\r'){
+        line.erase(line.size() - 1);
+    }
+}
+
+//Pre:  line is any string
+//Post: Returns true if line contains at least one alphabetical character
+bool hasAlpha(string line){
+    for(int i = 0; i < (int)line.size(); i++){
+        if(isalpha(line[i])) return true;
+    }
+    return false;
+}
 
 //Pre:  line is a non-blank string with at least 2 words
 //Post: Returns the last word of the line, cleaned of non-alpha characters,
@@ -64,86 +160,4 @@ bool compareWords(string word1, string word2){
     //compare last 2 characters
     return (word1[len1 - 2] == word2[len2 - 2]) &&
            (word1[len1 - 1] == word2[len2 - 1]);
-}
-
-//Pre:  line is any string
-//Post: Returns true if line contains at least one alphabetical character
-bool hasAlpha(string line){
-    for(int i = 0; i < (int)line.size(); i++){
-        if(isalpha(line[i])) return true;
-    }
-    return false;
-}
-
-int main(){
-    string filename;
-
-    //get filename from user
-    cout << "Enter filename: ";
-    cin >> filename;
-
-    //open the file
-    ifstream inFile(filename);
-    if(!inFile.is_open()){
-        cerr << "Cannot open " << filename << endl;
-        exit(1);
-    }
-
-    //first pass: count lines that contain at least one alpha character
-    int lineCount = 0;
-    string line;
-    while(getline(inFile, line)){
-        if(hasAlpha(line)) lineCount++;
-    }
-
-    //handle empty poem
-    if(lineCount == 0){
-        cout << "No rhymes found." << endl;
-        cout << "There are 0 lines in this poem." << endl;
-        inFile.close();
-        return 0;
-    }
-
-    //rewind and collect last words into dynamic array
-    inFile.clear();
-    inFile.seekg(0);
-
-    string* lastWords = new string[lineCount];
-    int idx = 0;
-
-    while(getline(inFile, line) && idx < lineCount){
-        if(hasAlpha(line)){
-            lastWords[idx] = findLastWord(line);
-            idx++;
-        }
-    }
-    inFile.close();
-
-    //find and print rhyming adjacent pairs
-    int rhymeCount = 0;
-    for(int i = 0; i < lineCount - 1; i++){
-        if(compareWords(lastWords[i], lastWords[i + 1])){
-            cout << lastWords[i] << " and " << lastWords[i + 1] << endl;
-            rhymeCount++;
-        }
-    }
-
-    //print summary
-    if(rhymeCount == 0){
-        cout << "No rhymes found." << endl;
-        cout << "There are " << lineCount << " lines in this poem." << endl;
-    }else{
-        if(rhymeCount == 1){
-            cout << "There is 1 pair of rhyming words." << endl;
-        }else{
-            cout << "There are " << rhymeCount << " pairs of rhyming words." << endl;
-        }
-        cout << fixed << setprecision(2);
-        cout << "There are " << lineCount << " lines in this poem, so the rhyme-line density is: "
-             << (double)rhymeCount / lineCount << endl;
-    }
-
-    delete[] lastWords;
-
-    return 0;
 }
